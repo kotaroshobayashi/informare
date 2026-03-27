@@ -24,9 +24,11 @@ async function callTelegram(method: string, payload: Record<string, unknown>) {
   const url = getTelegramApiUrl(method);
 
   if (!url) {
+    console.warn("[telegram] skipped request because TELEGRAM_BOT_TOKEN is missing", { method });
     return;
   }
 
+  console.log("[telegram] sending request", { method });
   await fetch(url, {
     method: "POST",
     headers: {
@@ -45,6 +47,7 @@ function trimSummary(summary: string, limit = 220) {
 }
 
 export async function sendTelegramText(chatId: string, text: string) {
+  console.log("[telegram] sendTelegramText", { chatId, preview: text.slice(0, 80) });
   await callTelegram("sendMessage", {
     chat_id: chatId,
     text,
@@ -53,6 +56,11 @@ export async function sendTelegramText(chatId: string, text: string) {
 }
 
 export async function sendTelegramProcessingResult(chatId: string, result: ProcessingResult) {
+  console.log("[telegram] sendTelegramProcessingResult", {
+    chatId,
+    savedItemId: result.savedItemId,
+    purposes: result.suggestedPurposes
+  });
   const intro = [
     `保存しました: ${result.title}`,
     "",
@@ -87,6 +95,7 @@ export async function sendTelegramProcessingResult(chatId: string, result: Proce
 }
 
 export async function answerTelegramCallback(callbackQueryId: string, text: string) {
+  console.log("[telegram] answerTelegramCallback", { callbackQueryId });
   await callTelegram("answerCallbackQuery", {
     callback_query_id: callbackQueryId,
     text

@@ -38,15 +38,23 @@ function getOnboardingPrompt(step: OnboardingStep) {
 
 export async function POST(request: NextRequest) {
   const secret = request.headers.get("x-telegram-bot-api-secret-token");
+  console.log("[webhook] request received", {
+    hasSecretHeader: Boolean(secret),
+    hasBotToken: Boolean(serverEnv.TELEGRAM_BOT_TOKEN),
+    appUrl: serverEnv.NEXT_PUBLIC_APP_URL
+  });
 
   if (serverEnv.TELEGRAM_WEBHOOK_SECRET && secret !== serverEnv.TELEGRAM_WEBHOOK_SECRET) {
+    console.warn("[webhook] secret mismatch");
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   const body = await request.json();
   const event = parseTelegramUpdate(body);
+  console.log("[webhook] parsed event", { type: event?.type ?? "none" });
 
   if (!event) {
+    console.warn("[webhook] ignored update because no supported event was found");
     return NextResponse.json({ ok: true, ignored: true });
   }
 
