@@ -6,35 +6,43 @@ interface ItemCardProps {
   index?: number;
 }
 
-function getCardTone(index: number) {
-  const tones = ["quote", "soft", "wide", "note", "plain"];
-  return tones[index % tones.length];
+type CardVariant = "reel" | "video" | "article" | "social" | "quote" | "note" | "plain";
+
+function getCardVariant(item: SavedItemListEntry, thumbnailUrl: string | null): CardVariant {
+  const p = item.platform?.toLowerCase() ?? "";
+
+  if (p === "instagram" || p === "tiktok") return "reel";
+  if (p === "youtube") return "video";
+  if (p === "x" || p === "twitter") return "social";
+
+  if (thumbnailUrl) return "article";
+
+  const textLen = (item.mainPoint || item.summary || "").length;
+  if (textLen > 180) return "quote";
+  if (item.captureNote) return "note";
+  return "plain";
 }
 
 function getFallbackThumbnail(item: SavedItemListEntry) {
-  if (item.thumbnailUrl) {
-    return item.thumbnailUrl;
-  }
-
+  if (item.thumbnailUrl) return item.thumbnailUrl;
   if (item.canonicalUrl && item.canonicalUrl !== "#") {
     return `https://image.thum.io/get/width/1200/crop/900/noanimate/${encodeURIComponent(item.canonicalUrl)}`;
   }
-
   return null;
 }
 
-export function ItemCard({ item, index = 0 }: ItemCardProps) {
+export function ItemCard({ item }: ItemCardProps) {
   const thumbnailUrl = getFallbackThumbnail(item);
-  const tone = thumbnailUrl ? "visual" : getCardTone(index);
-  const displaySummary = item.mainPoint || item.summary;
+  const variant = getCardVariant(item, thumbnailUrl);
+  const displayText = item.mainPoint || item.summary;
 
   return (
-    <article className={`itemCard itemCard-${tone}`}>
+    <article className={`itemCard itemCard-${variant}`}>
       {thumbnailUrl ? (
         <div
           className="itemMedia"
           style={{
-            backgroundImage: `linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.28) 100%), url(${thumbnailUrl})`
+            backgroundImage: `linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.32) 100%), url(${thumbnailUrl})`
           }}
         >
           <span className="mediaPlatform">{item.platform || item.sourceDomain}</span>
@@ -42,10 +50,14 @@ export function ItemCard({ item, index = 0 }: ItemCardProps) {
       ) : null}
 
       <div className="itemCardBody">
-        <h3>{item.title}</h3>
-        {displaySummary ? (
-          <p className="summaryCompact">{displaySummary}</p>
-        ) : null}
+        {variant === "quote" ? (
+          <p className="quoteText">{displayText}</p>
+        ) : (
+          <>
+            <h3>{item.title}</h3>
+            {displayText ? <p className="summaryCompact">{displayText}</p> : null}
+          </>
+        )}
 
         <div className="itemFooter">
           <span className="pill">{item.sourceDomain}</span>

@@ -315,33 +315,45 @@ textarea {
   transform: translateY(-2px);
 }
 
-/* tone variants — minimal differences */
+/* ── Card variants ── */
+
+/* Reel (Instagram / TikTok) — tall portrait */
+.itemCard-reel .itemMedia {
+  height: 360px;
+}
+
+/* Video (YouTube) — 16:9 landscape */
+.itemCard-video .itemMedia {
+  height: 200px;
+}
+
+/* Article — standard landscape */
+.itemCard-article .itemMedia {
+  height: 190px;
+}
+
+/* Social (X / Twitter) */
+.itemCard-social .itemMedia {
+  height: 200px;
+}
+.itemCard-social {
+  background: #f9f9fa;
+}
+
+/* Quote — no image, large styled text */
 .itemCard-quote {
-  min-height: 240px;
+  background: var(--surface);
+  min-height: 180px;
   justify-content: center;
 }
 
-.itemCard-quote .itemCardBody {
-  padding: 28px 22px;
-}
-
-.itemCard-quote h3 {
-  font-size: 1.5rem;
-  font-style: italic;
-  font-weight: 500;
-  letter-spacing: -0.03em;
-  text-align: center;
-  color: var(--ink);
-}
-
+/* Note — slightly warm tint */
 .itemCard-note {
   background: #fffdf0;
 }
 
-.itemCard-soft,
-.itemCard-wide,
-.itemCard-plain,
-.itemCard-visual {
+/* Plain */
+.itemCard-plain {
   background: var(--surface);
 }
 
@@ -403,6 +415,15 @@ textarea {
   font-weight: 600;
   letter-spacing: -0.02em;
   color: var(--ink);
+}
+
+.quoteText {
+  margin: 0;
+  font-size: 1.15rem;
+  font-style: italic;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+  color: var(--ink-soft);
 }
 
 .summaryCompact {

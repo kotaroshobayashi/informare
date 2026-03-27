@@ -26,7 +26,8 @@ const serverEnvSchema = publicEnvSchema.extend({
   SUPABASE_SERVICE_ROLE_KEY: optionalString,
   TELEGRAM_BOT_TOKEN: optionalString,
   TELEGRAM_WEBHOOK_SECRET: optionalString,
-  OPENAI_API_KEY: optionalString
+  OPENAI_API_KEY: optionalString,
+  EXTENSION_API_KEY: optionalString
 });
 
 export const publicEnv = publicEnvSchema.parse({
@@ -42,5 +43,6 @@ export const serverEnv = serverEnvSchema.parse({
   SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
   TELEGRAM_BOT_TOKEN: process.env.TELEGRAM_BOT_TOKEN,
   TELEGRAM_WEBHOOK_SECRET: process.env.TELEGRAM_WEBHOOK_SECRET,
-  OPENAI_API_KEY: process.env.OPENAI_API_KEY
+  OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+  EXTENSION_API_KEY: process.env.EXTENSION_API_KEY
 });
