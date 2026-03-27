@@ -20,14 +20,14 @@ export default async function LibraryPage() {
         </div>
 
         <div className="toolbar">
-          <div className="toolbarPill">Filter: all</div>
-          <div className="toolbarPill">Sort: newest</div>
-          <div className="toolbarPill">Auto tags enabled</div>
+          <div className="toolbarPill">all</div>
+          <div className="toolbarPill">newest</div>
+          <div className="toolbarPill">auto-tagged</div>
         </div>
 
-        <div className="cardGrid">
-          {items.map((item) => (
-            <ItemCard key={item.id} item={item} />
+        <div className="masonryGrid">
+          {items.map((item, index) => (
+            <ItemCard key={item.id} item={item} index={index} />
           ))}
         </div>
       </section>

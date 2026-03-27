@@ -18,15 +18,10 @@ const navItems: Array<{ href: Route; label: string }> = [
 export function DashboardShell({ profile, children }: DashboardShellProps) {
   return (
     <div className="shell">
-      <aside className="sidebar">
-        <div className="brand">
-          <p className="eyebrow">Informare</p>
-          <h1>Capture once. Reuse later.</h1>
-          <p className="muted">
-            Telegram-first stock system for links that should not disappear.
-          </p>
-        </div>
-
+      <aside className="rail">
+        <Link href="/" className="railBrand">
+          i
+        </Link>
         <nav className="nav">
           {navItems.map((item) => (
             <Link key={item.href} href={item.href} className="navItem">
@@ -34,17 +29,24 @@ export function DashboardShell({ profile, children }: DashboardShellProps) {
             </Link>
           ))}
         </nav>
-
-        <div className="profileCard">
-          <div className="avatar">{getInitials(profile.displayName)}</div>
-          <div>
-            <strong>{profile.displayName}</strong>
-            <p className="muted">{profile.role}</p>
-          </div>
-        </div>
       </aside>
 
-      <main className="content">{children}</main>
+      <main className="content">
+        <header className="topbar">
+          <div>
+            <p className="eyebrow">my informare</p>
+            <h1 className="topbarTitle">Search my mind...</h1>
+          </div>
+          <div className="profilePill">
+            <div className="avatar">{getInitials(profile.displayName)}</div>
+            <div>
+              <strong>{profile.displayName}</strong>
+              <p className="muted">{profile.role}</p>
+            </div>
+          </div>
+        </header>
+        {children}
+      </main>
     </div>
   );
 }

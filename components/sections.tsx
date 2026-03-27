@@ -4,9 +4,9 @@ import { ItemCard } from "@/components/item-card";
 export function HeroSection({ profile }: { profile: UserProfile }) {
   return (
     <section className="heroCard">
-      <div>
+      <div className="heroStatement">
         <p className="eyebrow">Personal context</p>
-        <h2>Saved links are interpreted through your role and interests.</h2>
+        <h2>Everything you save is reinterpreted through your role, interests, and future intent.</h2>
       </div>
       <div className="heroInfo">
         <div>
@@ -14,11 +14,11 @@ export function HeroSection({ profile }: { profile: UserProfile }) {
           <strong>{profile.role}</strong>
         </div>
         <div>
-          <span className="metaLabel">Interest areas</span>
+          <span className="metaLabel">Interests</span>
           <strong>{profile.interestAreas.join(" / ")}</strong>
         </div>
         <div>
-          <span className="metaLabel">Notification mode</span>
+          <span className="metaLabel">Review</span>
           <strong>{profile.notificationPreference}</strong>
         </div>
       </div>
@@ -28,20 +28,20 @@ export function HeroSection({ profile }: { profile: UserProfile }) {
 
 export function InboxSection({ items }: { items: SavedItemListEntry[] }) {
   return (
-    <section className="sectionBlock">
+    <section className="sectionBlock gallerySection">
       <div className="sectionHeader">
         <div>
-          <p className="eyebrow">Inbox</p>
-          <h2>Recent captures from Telegram</h2>
+          <p className="eyebrow">Library</p>
+          <h2>Objects, ideas, fragments, and links worth keeping close.</h2>
         </div>
         <p className="muted">
-          After each fetch, the bot can suggest purpose buttons and create reread reminders.
+          Telegram captures become a quiet board for rereading, sharing, and turning into future use.
         </p>
       </div>
 
-      <div className="cardGrid">
-        {items.map((item) => (
-          <ItemCard key={item.id} item={item} />
+      <div className="masonryGrid">
+        {items.map((item, index) => (
+          <ItemCard key={item.id} item={item} index={index} />
         ))}
       </div>
     </section>
@@ -56,7 +56,7 @@ export function ReuseSection({ items }: { items: SavedItemListEntry[] }) {
       <div className="sectionHeader">
         <div>
           <p className="eyebrow">Reread</p>
-          <h2>Items most likely to matter again</h2>
+          <h2>Signals your future self is most likely to want back.</h2>
         </div>
       </div>
 
