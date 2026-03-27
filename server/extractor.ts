@@ -106,7 +106,11 @@ function extractYouTubeId(rawUrl: string): string | undefined {
 }
 
 function isBlockedCdnUrl(url: string) {
-  return url.includes("cdninstagram.com") || url.includes("fbcdn.net");
+  return (
+    url.includes("cdninstagram.com") ||
+    url.includes("fbcdn.net") ||
+    url.includes("media.licdn.com")
+  );
 }
 
 function buildThumbnailFallback(platform: string, rawUrl: string): string {

@@ -24,14 +24,19 @@ function getCardVariant(item: SavedItemListEntry, thumbnailUrl: string | null): 
 }
 
 function isBlockedCdnUrl(url: string) {
-  return url.includes("cdninstagram.com") || url.includes("fbcdn.net");
+  return (
+    url.includes("cdninstagram.com") ||
+    url.includes("fbcdn.net") ||
+    url.includes("media.licdn.com")
+  );
 }
 
 function getFallbackThumbnail(item: SavedItemListEntry) {
   const p = item.platform?.toLowerCase() ?? "";
-  // Instagram/TikTok CDN URLs require auth — 403 in browser. Show brand gradient instead.
-  if (item.thumbnailUrl && !isBlockedCdnUrl(item.thumbnailUrl)) return item.thumbnailUrl;
+  // Instagram/TikTok: CDN requires auth AND thum.io can't screenshot them (login wall).
+  // Show brand gradient instead of any broken image.
   if (p === "instagram" || p === "tiktok") return null;
+  if (item.thumbnailUrl && !isBlockedCdnUrl(item.thumbnailUrl)) return item.thumbnailUrl;
   if (item.canonicalUrl && item.canonicalUrl !== "#") {
     return `https://image.thum.io/get/width/1200/crop/900/noanimate/${encodeURIComponent(item.canonicalUrl)}`;
   }
