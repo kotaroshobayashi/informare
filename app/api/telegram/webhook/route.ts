@@ -135,14 +135,32 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true, handled: "onboarding_required" });
   }
 
-  const job = await createCaptureJob(event.payload);
-  await sendTelegramText(event.payload.telegramChatId, "リンクを受け取りました。整理して返します。");
-  const result = await processCaptureJob(job.id);
-  await sendTelegramProcessingResult(event.payload.telegramChatId, result);
+  await sendTelegramText(
+    event.payload.telegramChatId,
+    event.payload.links.length > 1
+      ? `${event.payload.links.length}件のリンクを受け取りました。順番に整理して返します。`
+      : "リンクを受け取りました。整理して返します。"
+  );
+
+  const results = [];
+
+  for (const link of event.payload.links) {
+    const job = await createCaptureJob({
+      telegramUserId: event.payload.telegramUserId,
+      telegramChatId: event.payload.telegramChatId,
+      messageId: event.payload.messageId,
+      rawUrl: link.rawUrl,
+      note: link.note
+    });
+    const result = await processCaptureJob(job.id);
+    await sendTelegramProcessingResult(event.payload.telegramChatId, result);
+    results.push({ jobId: job.id, savedItemId: result.savedItemId });
+  }
 
   return NextResponse.json({
     ok: true,
     queued: true,
-    jobId: job.id
+    count: results.length,
+    jobs: results
   });
 }

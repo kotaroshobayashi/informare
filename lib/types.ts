@@ -66,6 +66,16 @@ export interface TelegramIncomingLinkPayload {
   note?: string;
 }
 
+export interface TelegramIncomingLinksPayload {
+  telegramUserId: string;
+  telegramChatId: string;
+  messageId: string;
+  links: Array<{
+    rawUrl: string;
+    note?: string;
+  }>;
+}
+
 export interface TelegramCommandPayload {
   telegramUserId: string;
   telegramChatId: string;
@@ -87,7 +97,7 @@ export interface TelegramPurposeSelectionPayload {
 }
 
 export type TelegramWebhookEvent =
-  | { type: "link"; payload: TelegramIncomingLinkPayload }
+  | { type: "links"; payload: TelegramIncomingLinksPayload }
   | { type: "command"; payload: TelegramCommandPayload }
   | { type: "text_message"; payload: TelegramTextMessagePayload }
   | { type: "purpose_selection"; payload: TelegramPurposeSelectionPayload };

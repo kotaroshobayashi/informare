@@ -3,7 +3,7 @@ import {
   OnboardingStep,
   SavedPurpose,
   TelegramCommandPayload,
-  TelegramIncomingLinkPayload,
+  TelegramIncomingLinksPayload,
   TelegramPurposeSelectionPayload,
   TelegramTextMessagePayload,
   TelegramWebhookEvent
@@ -154,9 +154,9 @@ export function parseTelegramUpdate(input: unknown): TelegramWebhookEvent | null
     };
   }
 
-  const urlMatch = text.match(/https?:\/\/\S+/i);
+  const urlMatches = [...text.matchAll(/https?:\/\/\S+/gi)].map((match) => match[0]);
 
-  if (!urlMatch) {
+  if (urlMatches.length === 0) {
     const textMessage = parsePlainTextMessage(text, telegramUserId, telegramChatId);
 
     if (!textMessage) {
@@ -169,16 +169,18 @@ export function parseTelegramUpdate(input: unknown): TelegramWebhookEvent | null
     };
   }
 
-  const note = text.replace(urlMatch[0], "").trim();
+  const note = text.replace(/https?:\/\/\S+/gi, " ").replace(/\s+/g, " ").trim();
 
   return {
-    type: "link",
+    type: "links",
     payload: {
       telegramUserId,
       telegramChatId,
       messageId: String(parsed.data.message.message_id),
-      rawUrl: urlMatch[0],
-      note: note.length > 0 ? note : undefined
+      links: urlMatches.map((rawUrl) => ({
+        rawUrl,
+        note: note.length > 0 ? note : undefined
+      }))
     }
   };
 }
