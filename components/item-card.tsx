@@ -23,8 +23,15 @@ function getCardVariant(item: SavedItemListEntry, thumbnailUrl: string | null): 
   return "plain";
 }
 
+function isBlockedCdnUrl(url: string) {
+  return url.includes("cdninstagram.com") || url.includes("fbcdn.net");
+}
+
 function getFallbackThumbnail(item: SavedItemListEntry) {
-  if (item.thumbnailUrl) return item.thumbnailUrl;
+  const p = item.platform?.toLowerCase() ?? "";
+  // Instagram/TikTok CDN URLs require auth — 403 in browser. Show brand gradient instead.
+  if (item.thumbnailUrl && !isBlockedCdnUrl(item.thumbnailUrl)) return item.thumbnailUrl;
+  if (p === "instagram" || p === "tiktok") return null;
   if (item.canonicalUrl && item.canonicalUrl !== "#") {
     return `https://image.thum.io/get/width/1200/crop/900/noanimate/${encodeURIComponent(item.canonicalUrl)}`;
   }
@@ -52,6 +59,10 @@ export function ItemCard({ item }: ItemCardProps) {
             backgroundImage: `linear-gradient(180deg, transparent 50%, rgba(0,0,0,0.32) 100%), url(${thumbnailUrl})`
           }}
         >
+          <span className="mediaPlatform">{item.platform || item.sourceDomain}</span>
+        </div>
+      ) : variant === "reel" ? (
+        <div className="itemMedia itemMediaReel">
           <span className="mediaPlatform">{item.platform || item.sourceDomain}</span>
         </div>
       ) : null}

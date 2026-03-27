@@ -105,6 +105,10 @@ function extractYouTubeId(rawUrl: string): string | undefined {
   }
 }
 
+function isBlockedCdnUrl(url: string) {
+  return url.includes("cdninstagram.com") || url.includes("fbcdn.net");
+}
+
 function buildThumbnailFallback(platform: string, rawUrl: string): string {
   if (platform === "youtube") {
     const videoId = extractYouTubeId(rawUrl);
@@ -188,7 +192,7 @@ export async function extractSourcePreview(rawUrl: string): Promise<ExtractedSou
     const language = html.match(/<html[^>]+lang=["']([^"']+)["']/i)?.[1]?.trim() || "unknown";
     const domain = new URL(canonicalUrl).hostname;
     const platform = detectPlatform(domain);
-    const thumbnailUrl =
+    const rawThumbnailUrl =
       resolveAssetUrl(
         extractMetaContent(html, "og:image:secure_url", "property") ||
           extractMetaContent(html, "og:image:url", "property") ||
@@ -198,7 +202,11 @@ export async function extractSourcePreview(rawUrl: string): Promise<ExtractedSou
           html.match(/<link[^>]+rel=["']image_src["'][^>]+href=["']([^"']+)["'][^>]*>/i)?.[1]?.trim() ||
           extractJsonLdImage(html),
         canonicalUrl
-      ) || buildThumbnailFallback(platform, canonicalUrl);
+      );
+    // Instagram CDN URLs require auth — blocked cross-origin. Use thum.io for non-Instagram, skip for Instagram.
+    const thumbnailUrl = rawThumbnailUrl && isBlockedCdnUrl(rawThumbnailUrl)
+      ? (platform === "instagram" || platform === "tiktok" ? undefined : buildThumbnailFallback(platform, canonicalUrl))
+      : rawThumbnailUrl ?? buildThumbnailFallback(platform, canonicalUrl);
     const tags = inferTags(title, summary, domain);
     const suggestedPurposes = inferPurposes(title, summary);
     const mainPoint = inferMainPoint(title, summary);

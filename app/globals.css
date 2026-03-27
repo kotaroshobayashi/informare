@@ -363,6 +363,11 @@ textarea {
   background: var(--surface);
 }
 
+/* Brand gradient for Instagram/TikTok reels (no extractable thumbnail) */
+.itemMediaReel {
+  background: linear-gradient(135deg, #833ab4 0%, #fd1d1d 50%, #fcb045 100%);
+}
+
 /* ── Card media ── */
 .itemMedia {
   height: 200px;
