@@ -26,11 +26,11 @@ function stripHtml(html: string) {
 }
 
 function extractMetaContent(html: string, key: string, attr: "name" | "property" = "name") {
-  const pattern = new RegExp(
-    `<meta[^>]+${attr}=["']${key}["'][^>]+content=["']([^"']+)["'][^>]*>`,
-    "i"
-  );
-  return html.match(pattern)?.[1]?.trim();
+  // attr before content: <meta property="og:image" content="...">
+  const p1 = new RegExp(`<meta[^>]+${attr}=["']${key}["'][^>]+content=["']([^"']+)["'][^>]*\/?>`, "i");
+  // content before attr: <meta content="..." property="og:image">
+  const p2 = new RegExp(`<meta[^>]+content=["']([^"']+)["'][^>]+${attr}=["']${key}["'][^>]*\/?>`, "i");
+  return html.match(p1)?.[1]?.trim() ?? html.match(p2)?.[1]?.trim();
 }
 
 function extractTitle(html: string) {

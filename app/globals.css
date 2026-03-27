@@ -308,11 +308,17 @@ textarea {
   box-shadow: var(--shadow-sm);
   transition: box-shadow 0.2s, transform 0.2s;
   cursor: pointer;
+  text-decoration: none;
+  color: inherit;
 }
 
 .itemCard:hover {
   box-shadow: var(--shadow-hover);
   transform: translateY(-2px);
+}
+
+.itemCard:visited {
+  color: inherit;
 }
 
 /* ── Card variants ── */

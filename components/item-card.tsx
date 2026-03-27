@@ -35,9 +35,16 @@ export function ItemCard({ item }: ItemCardProps) {
   const thumbnailUrl = getFallbackThumbnail(item);
   const variant = getCardVariant(item, thumbnailUrl);
   const displayText = item.mainPoint || item.summary;
+  const href = item.canonicalUrl && item.canonicalUrl !== "#" ? item.canonicalUrl : undefined;
 
   return (
-    <article className={`itemCard itemCard-${variant}`}>
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`itemCard itemCard-${variant}`}
+      style={href ? undefined : { cursor: "default" }}
+    >
       {thumbnailUrl ? (
         <div
           className="itemMedia"
@@ -64,6 +71,6 @@ export function ItemCard({ item }: ItemCardProps) {
           <span className="muted">{formatRelativeDate(item.createdAt)}</span>
         </div>
       </div>
-    </article>
+    </a>
   );
 }
