@@ -361,6 +361,7 @@ textarea {
 .itemMedia {
   height: 200px;
   width: 100%;
+  background-color: #e8e8e6;
   background-size: cover;
   background-position: center;
   display: flex;
