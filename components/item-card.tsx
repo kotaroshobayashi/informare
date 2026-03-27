@@ -11,62 +11,47 @@ function getCardTone(index: number) {
   return tones[index % tones.length];
 }
 
+function getFallbackThumbnail(item: SavedItemListEntry) {
+  if (item.thumbnailUrl) {
+    return item.thumbnailUrl;
+  }
+
+  if (item.canonicalUrl && item.canonicalUrl !== "#") {
+    return `https://image.thum.io/get/width/1200/crop/900/noanimate/${encodeURIComponent(item.canonicalUrl)}`;
+  }
+
+  return null;
+}
+
 export function ItemCard({ item, index = 0 }: ItemCardProps) {
-  const isVisual = Boolean(item.thumbnailUrl) || item.platform === "instagram" || item.platform === "youtube";
-  const tone = isVisual ? "visual" : getCardTone(index);
-  const showSummary = !isVisual;
+  const thumbnailUrl = getFallbackThumbnail(item);
+  const tone = thumbnailUrl ? "visual" : getCardTone(index);
+  const displaySummary = item.mainPoint || item.summary;
 
   return (
     <article className={`itemCard itemCard-${tone}`}>
-      {item.thumbnailUrl ? (
+      {thumbnailUrl ? (
         <div
           className="itemMedia"
           style={{
-            backgroundImage: `linear-gradient(180deg, rgba(20,20,24,0.08), rgba(20,20,24,0.18)), url(${item.thumbnailUrl})`
+            backgroundImage: `linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.28) 100%), url(${thumbnailUrl})`
           }}
         >
           <span className="mediaPlatform">{item.platform || item.sourceDomain}</span>
         </div>
       ) : null}
 
-      <div className="itemTopline">
-        <span className="pill">{item.sourceDomain}</span>
-        <span className="muted">{formatRelativeDate(item.createdAt)}</span>
-      </div>
+      <div className="itemCardBody">
+        <h3>{item.title}</h3>
+        {displaySummary ? (
+          <p className="summaryCompact">{displaySummary}</p>
+        ) : null}
 
-      <h3>{item.title}</h3>
-      {item.mainPoint ? <p className="mainPoint">{item.mainPoint}</p> : null}
-      {showSummary ? <p className="summary">{item.summary}</p> : null}
-
-      <div className="metaGrid">
-        <div>
-          <span className="metaLabel">Use</span>
-          <strong>{item.suggestedPurpose}</strong>
-        </div>
-        <div>
-          <span className="metaLabel">Reread</span>
-          <strong>{item.rereadScore}</strong>
-        </div>
-        <div>
-          <span className="metaLabel">Lang</span>
-          <strong>{item.language.toUpperCase()}</strong>
+        <div className="itemFooter">
+          <span className="pill">{item.sourceDomain}</span>
+          <span className="muted">{formatRelativeDate(item.createdAt)}</span>
         </div>
       </div>
-
-      <div className="tagRow">
-        {item.tags.map((tag) => (
-          <span key={tag} className="tag">
-            {tag}
-          </span>
-        ))}
-      </div>
-
-      {(item.captureNote || item.userMemo) && (
-        <div className="notes">
-          {item.captureNote ? <p>Capture: {item.captureNote}</p> : null}
-          {item.userMemo ? <p>Memo: {item.userMemo}</p> : null}
-        </div>
-      )}
     </article>
   );
 }

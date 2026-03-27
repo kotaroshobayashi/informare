@@ -9,10 +9,10 @@ interface DashboardShellProps {
   children: ReactNode;
 }
 
-const navItems: Array<{ href: Route; label: string }> = [
-  { href: "/", label: "Inbox" },
-  { href: "/library", label: "Library" },
-  { href: "/settings", label: "Settings" }
+const navItems: Array<{ href: Route; label: string; short: string }> = [
+  { href: "/", label: "Inbox", short: "In" },
+  { href: "/library", label: "Library", short: "Lib" },
+  { href: "/settings", label: "Settings", short: "Set" }
 ];
 
 export function DashboardShell({ profile, children }: DashboardShellProps) {
@@ -24,24 +24,24 @@ export function DashboardShell({ profile, children }: DashboardShellProps) {
         </Link>
         <nav className="nav">
           {navItems.map((item) => (
-            <Link key={item.href} href={item.href} className="navItem">
-              {item.label}
+            <Link key={item.href} href={item.href} className="navItem" title={item.label}>
+              {item.short}
             </Link>
           ))}
         </nav>
+        <div className="avatar" style={{ marginTop: "auto", width: 36, height: 36, fontSize: "0.75rem" }}>
+          {getInitials(profile.displayName)}
+        </div>
       </aside>
 
       <main className="content">
         <header className="topbar">
-          <div>
-            <p className="eyebrow">my informare</p>
-            <h1 className="topbarTitle">Search my mind...</h1>
-          </div>
+          <h1 className="topbarTitle">Search my mind.</h1>
           <div className="profilePill">
             <div className="avatar">{getInitials(profile.displayName)}</div>
             <div>
               <strong>{profile.displayName}</strong>
-              <p className="muted">{profile.role}</p>
+              <p className="muted" style={{ margin: 0, fontSize: "0.8rem" }}>{profile.role}</p>
             </div>
           </div>
         </header>

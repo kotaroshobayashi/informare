@@ -95,14 +95,9 @@ function resolveAssetUrl(assetUrl: string | undefined, baseUrl: string) {
   }
 }
 
-function buildThumbnailFallback(platform: string, rawUrl: string) {
+function buildThumbnailFallback(rawUrl: string) {
   const encoded = encodeURIComponent(rawUrl);
-
-  if (platform === "instagram" || platform === "x" || platform === "tiktok" || platform === "youtube") {
-    return `https://image.thum.io/get/width/1200/crop/900/noanimate/${encoded}`;
-  }
-
-  return undefined;
+  return `https://image.thum.io/get/width/1200/crop/900/noanimate/${encoded}`;
 }
 
 function inferMainPoint(title: string, summary: string) {
@@ -189,7 +184,7 @@ export async function extractSourcePreview(rawUrl: string): Promise<ExtractedSou
           html.match(/<link[^>]+rel=["']image_src["'][^>]+href=["']([^"']+)["'][^>]*>/i)?.[1]?.trim() ||
           extractJsonLdImage(html),
         canonicalUrl
-      ) || buildThumbnailFallback(platform, canonicalUrl);
+      ) || buildThumbnailFallback(canonicalUrl);
     const tags = inferTags(title, summary, domain);
     const suggestedPurposes = inferPurposes(title, summary);
     const mainPoint = inferMainPoint(title, summary);
@@ -223,6 +218,7 @@ export async function extractSourcePreview(rawUrl: string): Promise<ExtractedSou
       canonicalUrl: rawUrl,
       domain,
       platform,
+      thumbnailUrl: buildThumbnailFallback(rawUrl),
       language: "unknown",
       tags,
       rationale: "The page could not be fetched, so the system stored a minimal fallback record.",
