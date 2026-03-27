@@ -4,8 +4,11 @@ import { enrichWithLlm } from "@/server/llm";
 interface ExtractedSource {
   title: string;
   summary: string;
+  mainPoint: string;
   canonicalUrl: string;
   domain: string;
+  platform: string;
+  thumbnailUrl?: string;
   language: string;
   tags: string[];
   rationale: string;
@@ -36,6 +39,76 @@ function extractTitle(html: string) {
 
 function extractCanonical(html: string) {
   return html.match(/<link[^>]+rel=["']canonical["'][^>]+href=["']([^"']+)["'][^>]*>/i)?.[1]?.trim();
+}
+
+function extractJsonLdImage(html: string) {
+  const matches = [...html.matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi)];
+
+  for (const match of matches) {
+    try {
+      const parsed = JSON.parse(match[1]);
+      const entries = Array.isArray(parsed) ? parsed : [parsed];
+
+      for (const entry of entries) {
+        const image = entry?.image;
+
+        if (typeof image === "string") {
+          return image;
+        }
+
+        if (Array.isArray(image) && typeof image[0] === "string") {
+          return image[0];
+        }
+
+        if (image?.url && typeof image.url === "string") {
+          return image.url;
+        }
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  return undefined;
+}
+
+function detectPlatform(hostname: string) {
+  const host = hostname.toLowerCase();
+
+  if (host.includes("instagram.com")) return "instagram";
+  if (host.includes("youtube.com") || host.includes("youtu.be")) return "youtube";
+  if (host.includes("tiktok.com")) return "tiktok";
+  if (host.includes("x.com") || host.includes("twitter.com")) return "x";
+  if (host.includes("note.com")) return "note";
+  if (host.includes("substack.com")) return "substack";
+
+  return host.replace(/^www\./, "");
+}
+
+function resolveAssetUrl(assetUrl: string | undefined, baseUrl: string) {
+  if (!assetUrl) return undefined;
+
+  try {
+    return new URL(assetUrl, baseUrl).toString();
+  } catch {
+    return assetUrl;
+  }
+}
+
+function buildThumbnailFallback(platform: string, rawUrl: string) {
+  const encoded = encodeURIComponent(rawUrl);
+
+  if (platform === "instagram" || platform === "x" || platform === "tiktok" || platform === "youtube") {
+    return `https://image.thum.io/get/width/1200/crop/900/noanimate/${encoded}`;
+  }
+
+  return undefined;
+}
+
+function inferMainPoint(title: string, summary: string) {
+  const source = summary.trim() || title.trim();
+  const firstSentence = source.split(/[.!?。！？]\s/)[0]?.trim() || source;
+  return firstSentence.length > 140 ? `${firstSentence.slice(0, 139)}…` : firstSentence;
 }
 
 function inferTags(title: string, summary: string, domain: string) {
@@ -105,14 +178,30 @@ export async function extractSourcePreview(rawUrl: string): Promise<ExtractedSou
       "Captured by Informare. Full extraction and summarization pipeline can enrich this further.";
     const language = html.match(/<html[^>]+lang=["']([^"']+)["']/i)?.[1]?.trim() || "unknown";
     const domain = new URL(canonicalUrl).hostname;
+    const platform = detectPlatform(domain);
+    const thumbnailUrl =
+      resolveAssetUrl(
+        extractMetaContent(html, "og:image:secure_url", "property") ||
+          extractMetaContent(html, "og:image:url", "property") ||
+          extractMetaContent(html, "og:image", "property") ||
+          extractMetaContent(html, "twitter:image") ||
+          extractMetaContent(html, "twitter:image:src") ||
+          html.match(/<link[^>]+rel=["']image_src["'][^>]+href=["']([^"']+)["'][^>]*>/i)?.[1]?.trim() ||
+          extractJsonLdImage(html),
+        canonicalUrl
+      ) || buildThumbnailFallback(platform, canonicalUrl);
     const tags = inferTags(title, summary, domain);
     const suggestedPurposes = inferPurposes(title, summary);
+    const mainPoint = inferMainPoint(title, summary);
 
     return {
       title,
       summary,
+      mainPoint,
       canonicalUrl,
       domain,
+      platform,
+      thumbnailUrl,
       language,
       tags,
       rationale:
@@ -124,13 +213,16 @@ export async function extractSourcePreview(rawUrl: string): Promise<ExtractedSou
     const domain = url.hostname;
     const title = domain.replace(/^www\./, "");
     const summary = "The URL was captured, but full metadata extraction failed. You can still keep it in the library.";
+    const platform = detectPlatform(domain);
     const tags = inferTags(title, summary, domain);
 
     return {
       title,
       summary,
+      mainPoint: inferMainPoint(title, summary),
       canonicalUrl: rawUrl,
       domain,
+      platform,
       language: "unknown",
       tags,
       rationale: "The page could not be fetched, so the system stored a minimal fallback record.",
@@ -168,6 +260,7 @@ export async function extractSourcePreviewForProfile(rawUrl: string, profile: Us
     return {
       ...extracted,
       summary: enriched.summary,
+      mainPoint: inferMainPoint(extracted.title, enriched.summary),
       tags: enriched.tags,
       rationale: enriched.rationale,
       suggestedPurposes: enriched.suggestedPurposes,

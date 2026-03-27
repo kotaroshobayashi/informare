@@ -101,7 +101,8 @@ export async function processCaptureJob(jobId: string) {
             canonical_url: extracted.canonicalUrl,
             domain: extracted.domain,
             title: extracted.title,
-            platform: extracted.domain
+            platform: extracted.platform,
+            og_image_url: extracted.thumbnailUrl ?? null
           },
           { onConflict: "canonical_url" }
         )
@@ -122,7 +123,10 @@ export async function processCaptureJob(jobId: string) {
           suggested_purposes: extracted.suggestedPurposes,
           reread_score: extracted.rereadScore,
           metadata: {
-            title: extracted.title
+            title: extracted.title,
+            main_point: extracted.mainPoint,
+            thumbnail_url: extracted.thumbnailUrl ?? null,
+            platform: extracted.platform
           }
         })
         .select("id")

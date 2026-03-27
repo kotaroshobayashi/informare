@@ -28,7 +28,18 @@ interface SavedItemRow {
   documents: {
     summary: string | null;
     language: string | null;
-    sources: { title: string | null; canonical_url: string; domain: string };
+    metadata: {
+      main_point?: string | null;
+      thumbnail_url?: string | null;
+      platform?: string | null;
+    } | null;
+    sources: {
+      title: string | null;
+      canonical_url: string;
+      domain: string;
+      platform: string | null;
+      og_image_url: string | null;
+    };
   } | null;
   saved_item_tags: Array<{ tags: { name: string } | null }>;
 }
@@ -60,8 +71,11 @@ function mapSavedItem(row: SavedItemRow): SavedItemListEntry {
     id: row.id,
     title: row.documents?.sources.title || row.documents?.sources.domain || "Untitled capture",
     summary: row.documents?.summary || "Summary will appear after processing.",
+    mainPoint: row.documents?.metadata?.main_point || row.documents?.summary || null,
     sourceDomain: row.documents?.sources.domain || "unknown",
     canonicalUrl: row.documents?.sources.canonical_url || "#",
+    thumbnailUrl: row.documents?.metadata?.thumbnail_url || row.documents?.sources.og_image_url || null,
+    platform: row.documents?.metadata?.platform || row.documents?.sources.platform || null,
     createdAt: row.created_at,
     language: row.documents?.language || "unknown",
     status: row.status,
@@ -188,10 +202,13 @@ export async function loadDashboardData(): Promise<DashboardData> {
         documents (
           summary,
           language,
+          metadata,
           sources (
             title,
             canonical_url,
-            domain
+            domain,
+            platform,
+            og_image_url
           )
         ),
         saved_item_tags (

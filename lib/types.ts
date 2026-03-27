@@ -29,8 +29,11 @@ export interface SavedItemListEntry {
   id: string;
   title: string;
   summary: string;
+  mainPoint?: string | null;
   sourceDomain: string;
   canonicalUrl: string;
+  thumbnailUrl?: string | null;
+  platform?: string | null;
   createdAt: string;
   language: string;
   status: SavedStatus;
