@@ -9,6 +9,7 @@ const inMemoryJobs = new Map<
     id: string;
     payload: TelegramIncomingLinkPayload;
     status: "queued" | "processed";
+    duplicate?: boolean;
     result?: ProcessingResult;
   }
 >();
@@ -18,6 +19,24 @@ export async function createCaptureJob(payload: TelegramIncomingLinkPayload) {
 
   if (supabase) {
     const { userId } = await ensureUserContext(payload.telegramUserId, payload.telegramChatId);
+
+    const { data: existingRawLink } = await supabase
+      .from("raw_links")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("telegram_message_id", payload.messageId)
+      .eq("telegram_chat_id", payload.telegramChatId)
+      .eq("raw_url", payload.rawUrl)
+      .maybeSingle<{ id: string }>();
+
+    if (existingRawLink) {
+      return {
+        id: `existing:${existingRawLink.id}`,
+        payload,
+        status: "queued" as const,
+        duplicate: true as const
+      };
+    }
 
     const { data: rawLinkData, error: rawLinkError } = await supabase
       .from("raw_links")
@@ -56,7 +75,23 @@ export async function createCaptureJob(payload: TelegramIncomingLinkPayload) {
     return {
       id: jobData.id,
       payload,
-      status: "queued" as const
+      status: "queued" as const,
+      duplicate: false as const
+    };
+  }
+
+  const duplicateKey = `${payload.telegramChatId}:${payload.messageId}:${payload.rawUrl}`;
+  const existing = [...inMemoryJobs.values()].find(
+    (job) =>
+      `${job.payload.telegramChatId}:${job.payload.messageId}:${job.payload.rawUrl}` === duplicateKey
+  );
+
+  if (existing) {
+    return {
+      id: existing.id,
+      payload,
+      status: existing.status,
+      duplicate: true as const
     };
   }
 
@@ -64,7 +99,8 @@ export async function createCaptureJob(payload: TelegramIncomingLinkPayload) {
   const job = {
     id,
     payload,
-    status: "queued" as const
+    status: "queued" as const,
+    duplicate: false as const
   };
 
   inMemoryJobs.set(id, job);

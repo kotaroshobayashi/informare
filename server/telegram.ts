@@ -17,7 +17,8 @@ const messageSchema = z.object({
   }),
   from: z
     .object({
-      id: z.union([z.string(), z.number()])
+      id: z.union([z.string(), z.number()]),
+      is_bot: z.boolean().optional()
     })
     .optional()
 });
@@ -139,6 +140,10 @@ export function parseTelegramUpdate(input: unknown): TelegramWebhookEvent | null
   }
 
   if (!parsed.data.message?.from) {
+    return null;
+  }
+
+  if (parsed.data.message.from.is_bot) {
     return null;
   }
 

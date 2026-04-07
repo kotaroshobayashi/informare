@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { after, NextRequest, NextResponse } from "next/server";
 import { serverEnv } from "@/lib/env";
 import { parseTelegramUpdate } from "@/server/telegram";
 import { createCaptureJob, processCaptureJob } from "@/server/jobs";
@@ -142,25 +142,40 @@ export async function POST(request: NextRequest) {
       : "リンクを受け取りました。整理して返します。"
   );
 
-  const results = [];
+  after(async () => {
+    for (const link of event.payload.links) {
+      try {
+        const job = await createCaptureJob({
+          telegramUserId: event.payload.telegramUserId,
+          telegramChatId: event.payload.telegramChatId,
+          messageId: event.payload.messageId,
+          rawUrl: link.rawUrl,
+          note: link.note
+        });
 
-  for (const link of event.payload.links) {
-    const job = await createCaptureJob({
-      telegramUserId: event.payload.telegramUserId,
-      telegramChatId: event.payload.telegramChatId,
-      messageId: event.payload.messageId,
-      rawUrl: link.rawUrl,
-      note: link.note
-    });
-    const result = await processCaptureJob(job.id);
-    await sendTelegramProcessingResult(event.payload.telegramChatId, result);
-    results.push({ jobId: job.id, savedItemId: result.savedItemId });
-  }
+        if (job.duplicate) {
+          console.log("[webhook] skipped duplicate link job", {
+            messageId: event.payload.messageId,
+            rawUrl: link.rawUrl
+          });
+          continue;
+        }
+
+        const result = await processCaptureJob(job.id);
+        await sendTelegramProcessingResult(event.payload.telegramChatId, result);
+      } catch (error) {
+        console.error("[webhook] failed to process link", {
+          messageId: event.payload.messageId,
+          rawUrl: link.rawUrl,
+          error: error instanceof Error ? error.message : "unknown"
+        });
+      }
+    }
+  });
 
   return NextResponse.json({
     ok: true,
     queued: true,
-    count: results.length,
-    jobs: results
+    count: event.payload.links.length
   });
 }
